@@ -241,7 +241,7 @@ class AMQClient(FrameReceiver):
         self.vhost = vhost
 
         self.channelFactory = type("Channel%s" % self.spec.klass.__name__,
-                                    (self.channelClass, self.spec.klass), {})
+                                   (self.channelClass, self.spec.klass), {})
         self.channels = {}
         self.channelLock = defer.DeferredLock()
 
@@ -267,7 +267,7 @@ class AMQClient(FrameReceiver):
         self.clock = clock
         if self.heartbeatInterval > 0:
             self.checkHB = self.clock.callLater(self.heartbeatInterval *
-                          self.MAX_UNSEEN_HEARTBEAT, self.checkHeartbeat)
+                                                self.MAX_UNSEEN_HEARTBEAT, self.checkHeartbeat)
             self.sendHB = LoopingCall(self.sendHeartbeat)
             self.sendHB.clock = self.clock
             d = self.started.wait()
@@ -286,7 +286,7 @@ class AMQClient(FrameReceiver):
         if self.checkHB.active():
             self.checkHB.cancel()
         self.checkHB = self.clock.callLater(self.heartbeatInterval *
-              self.MAX_UNSEEN_HEARTBEAT, self.checkHeartbeat)
+                                            self.MAX_UNSEEN_HEARTBEAT, self.checkHeartbeat)
 
     def check_0_8(self):
         return (self.spec.minor, self.spec.major) == (0, 8)

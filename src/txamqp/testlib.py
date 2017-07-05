@@ -51,9 +51,9 @@ class supportedBrokers(object):
 def _get_broker():
     return os.environ.get("TXAMQP_BROKER")
 
-USERNAME='guest'
-PASSWORD='guest'
-VHOST='/'
+USERNAME = 'guest'
+PASSWORD = 'guest'
+VHOST = '/'
 HEARTBEAT = 0
 
 
@@ -100,7 +100,7 @@ class TestBase(unittest.TestCase):
 
     @inlineCallbacks
     def connect(self, host=None, port=None, spec=None, user=None, password=None, vhost=None,
-            heartbeat=None, clientClass=None):
+                heartbeat=None, clientClass=None):
         host = host or self.host
         port = port or self.port
         spec = spec or self.spec
@@ -129,7 +129,7 @@ class TestBase(unittest.TestCase):
         returnValue(client)
 
     @inlineCallbacks
-    def authenticate(self,client,user,password):
+    def authenticate(self, client, user, password):
         yield client.authenticate(user, password)
 
     @inlineCallbacks
@@ -140,7 +140,7 @@ class TestBase(unittest.TestCase):
             le.args = tuple(("Unable to connect to AMQP broker in order to run tests (perhaps due to auth failure?). " \
                 "The tests assume that an instance of the %s AMQP broker is already set up and that this test script " \
                 "can connect to it and use it as user '%s', password '%s', vhost '%s'." % (_get_broker(),
-                    USERNAME, PASSWORD, VHOST),) + le.args)
+                                                                                           USERNAME, PASSWORD, VHOST),) + le.args)
             raise
 
         self.channel = yield self.client.channel(1)
@@ -169,7 +169,7 @@ class TestBase(unittest.TestCase):
                          arguments={}):
         channel = channel or self.channel
         reply = yield channel.exchange_declare(ticket, exchange, type, passive, durable, auto_delete, internal, nowait, arguments)
-        self.exchanges.append((channel,exchange))
+        self.exchanges.append((channel, exchange))
         returnValue(reply)
 
     def assertChannelException(self, expectedCode, message):
