@@ -21,13 +21,13 @@ from twisted.internet.defer import inlineCallbacks
 from txamqp.client import ConnectionClosed, ChannelClosed
 from txamqp.queue import Empty
 from txamqp.content import Content
-from txamqp.testlib import TestBase, supportedBrokers, QPID, OPENAMQ, RABBITMQ
+from txamqp.testlib import TestBase, SupportedBrokers, QPID, OPENAMQ, RABBITMQ
 
 
 class BasicTests(TestBase):
     """Tests for 'methods' on the amqp basic 'class'"""
 
-    @supportedBrokers(QPID, OPENAMQ)
+    @SupportedBrokers(QPID, OPENAMQ)
     @inlineCallbacks
     def test_consume_no_local(self):
         """
@@ -99,7 +99,7 @@ class BasicTests(TestBase):
         except ChannelClosed as e:
             self.assertChannelException(404, e.args[0])
 
-    @supportedBrokers(QPID, OPENAMQ)
+    @SupportedBrokers(QPID, OPENAMQ)
     @inlineCallbacks
     def test_consume_queue_unspecified(self):
         """
@@ -114,7 +114,7 @@ class BasicTests(TestBase):
         except ConnectionClosed as e:
             self.assertConnectionException(530, e.args[0])
 
-    @supportedBrokers(RABBITMQ)
+    @SupportedBrokers(RABBITMQ)
     @inlineCallbacks
     def test_consume_queue_unspecified_rabbit(self):
         """
@@ -173,7 +173,7 @@ class BasicTests(TestBase):
         yield channel.basic_cancel(consumer_tag="my-consumer")
         yield channel.basic_cancel(consumer_tag="this-never-existed")
 
-    @supportedBrokers(QPID, OPENAMQ)
+    @SupportedBrokers(QPID, OPENAMQ)
     @inlineCallbacks
     def test_ack(self):
         """
@@ -324,7 +324,7 @@ class BasicTests(TestBase):
         except Empty:
             pass
 
-    @supportedBrokers(QPID, OPENAMQ)
+    @SupportedBrokers(QPID, OPENAMQ)
     @inlineCallbacks
     def test_qos_prefetch_size(self):
         """

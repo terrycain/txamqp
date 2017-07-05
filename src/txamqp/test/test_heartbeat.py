@@ -9,12 +9,12 @@ class SpyAMQClient(AMQClient):
     called_reschedule_check = 0
     called_send_hb = 0
 
-    def reschedule_checkHB(self, dummy=None):
-        AMQClient.reschedule_checkHB(self)
+    def reschedule_check_heartbeat(self, dummy=None):
+        AMQClient.reschedule_check_heartbeat(self)
         self.called_reschedule_check += 1
 
-    def sendHeartbeat(self):
-        AMQClient.sendHeartbeat(self)
+    def send_heartbeat(self):
+        AMQClient.send_heartbeat(self)
         self.called_send_hb += 1
 
 

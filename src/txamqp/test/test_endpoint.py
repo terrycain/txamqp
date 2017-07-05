@@ -67,7 +67,7 @@ class AMQEndpointTest(TestCase):
         """
         It's possible to build an AMQEndpoint from an AMQP URI string.
         """
-        endpoint = AMQEndpoint.fromURI(
+        endpoint = AMQEndpoint.from_uri(
             self.reactor, "amqp://me:pw@some.broker/foo?heartbeat=10")
         endpoint.connect(self.factory)
         self.assertEqual(("some.broker", 5672), self.reactor.tcpClients[0][:2])

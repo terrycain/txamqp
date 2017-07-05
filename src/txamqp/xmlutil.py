@@ -31,7 +31,7 @@ def parse(file):
     return doc
 
 
-def parseString(string):
+def parse_string(string):
     doc = Node("root")
     xml.sax.parseString(string, Builder(doc))
     return doc

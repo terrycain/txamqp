@@ -36,12 +36,12 @@ OPENAMQ = "OPENAMQ"
 QPID = "QPID"
 
 
-class supportedBrokers(object):
-    def __init__(self, *supporterBrokers):
-        self.supporterBrokers = supporterBrokers
+class SupportedBrokers(object):
+    def __init__(self, *args):
+        self.brokers = args
 
     def __call__(self, f):
-        if _get_broker() not in self.supporterBrokers:
+        if _get_broker() not in self.brokers:
             f.skip = "Not supported for this broker."
         return f
 

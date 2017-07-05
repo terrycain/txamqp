@@ -20,13 +20,13 @@ from twisted.internet.defer import inlineCallbacks
 
 from txamqp.client import Closed
 from txamqp.content import Content
-from txamqp.testlib import TestBase, supportedBrokers, QPID, OPENAMQ
+from txamqp.testlib import TestBase, SupportedBrokers, QPID, OPENAMQ
 
 
 class QueueTests(TestBase):
     """Tests for 'methods' on the amqp queue 'class'"""
 
-    @supportedBrokers(QPID, OPENAMQ)
+    @SupportedBrokers(QPID, OPENAMQ)
     @inlineCallbacks
     def test_purge(self):
         """

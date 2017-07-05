@@ -75,7 +75,7 @@ class AMQEndpoint(object):
         self._timeout = timeout
 
     @classmethod
-    def fromURI(cls, reactor, uri):
+    def from_uri(cls, reactor, uri):
         """Return an AMQEndpoint instance configured with the given AMQP uri.
 
         @see: https://www.rabbitmq.com/uri-spec.html
@@ -112,8 +112,8 @@ class AMQEndpoint(object):
         """
         # XXX Since AMQClient requires these parameters at __init__ time, we
         #     need to override them in the provided factory.
-        protocol_factory.setVHost(self._vhost)
-        protocol_factory.setHeartbeat(self._heartbeat)
+        protocol_factory.set_vhost(self._vhost)
+        protocol_factory.set_heartbeat(self._heartbeat)
 
         description = "tcp:{}:{}:timeout={}".format(
             self._host, self._port, self._timeout)

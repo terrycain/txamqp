@@ -21,7 +21,7 @@ from twisted.internet.defer import inlineCallbacks
 from txamqp.client import ConnectionClosed
 from txamqp.queue import Empty
 from txamqp.content import Content
-from txamqp.testlib import TestBase, supportedBrokers, QPID, OPENAMQ
+from txamqp.testlib import TestBase, SupportedBrokers, QPID, OPENAMQ
 
 
 class ASaslPlainAuthenticationTest(TestBase):
@@ -148,7 +148,7 @@ class BrokerTests(TestBase):
         except ConnectionClosed as e:
             self.assertConnectionException(504, e.args[0])
 
-    @supportedBrokers(QPID, OPENAMQ)
+    @SupportedBrokers(QPID, OPENAMQ)
     @inlineCallbacks
     def test_channel_flow(self):
         channel = self.channel

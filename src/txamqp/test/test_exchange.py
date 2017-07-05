@@ -25,7 +25,7 @@ Test classes ending in 'RuleTests' are derived from rules in amqp.xml.
 from twisted.internet.defer import inlineCallbacks
 
 from txamqp.queue import Empty
-from txamqp.testlib import TestBase, supportedBrokers, QPID, OPENAMQ, RABBITMQ
+from txamqp.testlib import TestBase, SupportedBrokers, QPID, OPENAMQ, RABBITMQ
 from txamqp.content import Content
 from txamqp.client import ChannelClosed, ConnectionClosed
 
@@ -157,7 +157,7 @@ class DefaultExchangeRuleTests(TestBase, StandardExchangeVerifier):
     routing key but without specifying the exchange name, then ensuring that
     the message arrives in the queue correctly.
     """
-    @supportedBrokers(QPID, OPENAMQ)
+    @SupportedBrokers(QPID, OPENAMQ)
     @inlineCallbacks
     def test_default_exchange(self):
         # Test automatic binding by queue name.
@@ -332,7 +332,7 @@ class MiscellaneousErrorsTests(TestBase):
         except ConnectionClosed as e:
             self.assertConnectionException(503, e.args[0])
 
-    @supportedBrokers(QPID, OPENAMQ)
+    @SupportedBrokers(QPID, OPENAMQ)
     @inlineCallbacks
     def test_different_declared_type(self):
         yield self.channel.exchange_declare(exchange="test_different_declared_type_exchange", type="direct")
@@ -347,7 +347,7 @@ class MiscellaneousErrorsTests(TestBase):
         yield c2.channel_open()
         yield c2.exchange_delete(exchange="test_different_declared_type_exchange")
 
-    @supportedBrokers(RABBITMQ)
+    @SupportedBrokers(RABBITMQ)
     @inlineCallbacks
     def test_different_declared_type_rabbit(self):
         """Test redeclaration of exchange with different type on RabbitMQ."""
