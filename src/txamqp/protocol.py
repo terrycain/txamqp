@@ -1,10 +1,15 @@
 # coding: utf-8
-from io import BytesIO, StringIO
+from io import BytesIO
+import struct
+from time import time
+
 from twisted.internet import defer, protocol
 from twisted.internet.task import LoopingCall
 from twisted.internet.error import ConnectionDone
 from twisted.protocols import basic
 from twisted.python.failure import Failure
+import six
+
 from txamqp import spec
 from txamqp.codec import Codec
 from txamqp.connection import Header, Frame, Method, Body, Heartbeat
@@ -13,18 +18,15 @@ from txamqp.content import Content
 from txamqp.queue import TimeoutDeferredQueue, Closed as QueueClosed
 from txamqp.client import TwistedEvent, Closed, ConnectionClosed, ChannelClosed
 
-import six
-import struct
-from time import time
 
 class GarbageException(Exception):
     pass
+
 
 # An AMQP channel is a virtual connection that shares the
 # same socket with others channels. One can have many channels
 # per connection
 class AMQChannel(object):
-
     def __init__(self, id, outgoing, client):
         self.id = id
         self.outgoing = outgoing
@@ -73,7 +75,7 @@ class AMQChannel(object):
         self.outgoing.put(frame)
 
         if method.content:
-            if content == None:
+            if content is None:
                 content = Content()
             self.writeContent(method.klass, content, self.outgoing)
 
@@ -109,9 +111,9 @@ class AMQChannel(object):
         for child in content.children:
             self.writeContent(klass, child, queue)
         if size > 0:
-            maxChunkSize = self.client.MAX_LENGTH - 8
-            for i in range(0, len(content.body), maxChunkSize):
-                chunk = content.body[i:i + maxChunkSize]
+            max_chunk_size = self.client.MAX_LENGTH - 8
+            for i in range(0, len(content.body), max_chunk_size):
+                chunk = content.body[i:i + max_chunk_size]
                 queue.put(Frame(self.id, Body(chunk)))
 
     def _raiseClosed(self, reason):
@@ -155,9 +157,9 @@ class FrameReceiver(protocol.Protocol, basic._PauseableMixin):
     def _unpackFrame(self, data):
         s = BytesIO(data)
         c = Codec(s)
-        frameType = spec.pythonize(self.spec.constants.byid[c.decode_octet()].name)
+        frame_type = spec.pythonize(self.spec.constants.byid[c.decode_octet()].name)
         channel = c.decode_short()
-        payload = Frame.DECODERS[frameType].decode(self.spec, c)
+        payload = Frame.DECODERS[frame_type].decode(self.spec, c)
         end = c.decode_octet()
         if end != self.FRAME_END:
             raise GarbageException('frame error: expected %r, got %r' % (self.FRAME_END, end))
@@ -177,7 +179,7 @@ class FrameReceiver(protocol.Protocol, basic._PauseableMixin):
         while self.frame_mode and not self.paused:
             sz = len(self.__buffer) - self.HEADER_LENGTH
             if sz >= 0:
-                length, = struct.unpack("!I", self.__buffer[3:7]) # size = 4 bytes
+                length, = struct.unpack("!I", self.__buffer[3:7])  # size = 4 bytes
                 if sz >= length:
                     packet = self.__buffer[:self.HEADER_LENGTH + length]
                     self.__buffer = self.__buffer[self.HEADER_LENGTH + length:]
@@ -200,11 +202,11 @@ class FrameReceiver(protocol.Protocol, basic._PauseableMixin):
                     return self.rawDataReceived(data)
 
     def sendInitString(self):
-        initString = "!4s4B"
         s = BytesIO()
         c = Codec(s)
-        c.pack(initString, b"AMQP", 1, 1, self.spec.major, self.spec.minor)
+        c.pack("!4s4B", b"AMQP", 1, 1, self.spec.major, self.spec.minor)
         self.transport.write(s.getvalue())
+
 
 @defer.inlineCallbacks
 def readContent(queue):
@@ -224,8 +226,8 @@ def readContent(queue):
         read += len(content)
     defer.returnValue(Content(buf.getvalue(), children, header.properties.copy()))
 
-class AMQClient(FrameReceiver):
 
+class AMQClient(FrameReceiver):
     channelClass = AMQChannel
 
     # Max unreceived heartbeat frames. The AMQP standard says it's 3.
@@ -365,6 +367,7 @@ class AMQClient(FrameReceiver):
 
     def worker(self, queue):
         d = self.dispatch(queue)
+
         def cb(ign):
             self.work.get().addCallback(self.worker)
         d.addCallback(cb)

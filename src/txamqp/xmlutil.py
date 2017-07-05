@@ -24,30 +24,32 @@ XML utilities used by spec.py
 import xml.sax
 from xml.sax.handler import ContentHandler
 
+
 def parse(file):
     doc = Node("root")
     xml.sax.parse(file, Builder(doc))
     return doc
+
 
 def parseString(string):
     doc = Node("root")
     xml.sax.parseString(string, Builder(doc))
     return doc
 
-class Node(object):
 
+class Node(object):
     def __init__(self, name, attrs=None, text=None, parent=None):
         self.name = name
         self.attrs = attrs
         self.text = text
         self.parent = parent
         self.children = []
-        if parent != None:
+        if parent is not None:
             parent.children.append(self)
 
     def get_bool(self, key, default=False):
         v = self.get(key)
-        if v == None:
+        if v is None:
             return default
         else:
             return bool(int(v))
@@ -97,18 +99,21 @@ class Node(object):
         return iter(self.children)
 
     def path(self):
-        if self.parent == None:
+        if self.parent is None:
             return "/%s" % self.name
         else:
             return "%s/%s" % (self.parent.path(), self.name)
 
+
 class Builder(ContentHandler):
-
     def __init__(self, start=None):
-        self.node = start
+        ContentHandler.__init__(self)
 
-    def __setitem__(self, element, type):
-        self.types[element] = type
+        self.node = start
+        self.types = []
+
+    def __setitem__(self, element, value):
+        self.types[element] = value
 
     def startElement(self, name, attrs):
         self.node = Node(name, attrs, None, self.node)
@@ -117,7 +122,7 @@ class Builder(ContentHandler):
         self.node = self.node.parent
 
     def characters(self, content):
-        if self.node.text == None:
+        if self.node.text is None:
             self.node.text = content
         else:
             self.node.text += content

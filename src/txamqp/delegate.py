@@ -18,10 +18,11 @@
 #
 
 import inspect
+
 from .spec import pythonize
 
-class Delegate(object):
 
+class Delegate(object):
     def __init__(self):
         self.handlers = {}
         self.invokers = {}

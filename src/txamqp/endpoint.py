@@ -100,26 +100,26 @@ class AMQEndpoint(object):
             kwargs["heartbeat"] = int(kwargs["heartbeat"])
         return cls(reactor, host, uri.port, **kwargs)
 
-    def connect(self, protocolFactory):
+    def connect(self, protocol_factory):
         """
         Connect to the C{protocolFactory} to the AMQP broker specified by the
         URI of this endpoint.
 
-        @param protocolFactory: An L{AMQFactory} building L{AMQClient} objects.
+        @param protocol_factory: An L{AMQFactory} building L{AMQClient} objects.
         @return: A L{Deferred} that results in an L{AMQClient} upon successful
             connection otherwise a L{Failure} wrapping L{ConnectError} or
             L{NoProtocol <twisted.internet.error.NoProtocol>}.
         """
         # XXX Since AMQClient requires these parameters at __init__ time, we
         #     need to override them in the provided factory.
-        protocolFactory.setVHost(self._vhost)
-        protocolFactory.setHeartbeat(self._heartbeat)
+        protocol_factory.setVHost(self._vhost)
+        protocol_factory.setHeartbeat(self._heartbeat)
 
         description = "tcp:{}:{}:timeout={}".format(
             self._host, self._port, self._timeout)
         endpoint = clientFromString(self._reactor, description)
 
-        deferred = endpoint.connect(protocolFactory)
+        deferred = endpoint.connect(protocol_factory)
         return deferred.addCallback(self._authenticate)
 
     @inlineCallbacks

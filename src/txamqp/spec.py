@@ -29,17 +29,18 @@ class so that the generated code can be reused in a variety of
 situations.
 """
 
-import re, textwrap, types, os
+import re
+import textwrap
+import types
+import os
 
 from txamqp import xmlutil
 
 
-DEFAULT_SPEC = os.path.join(
-    os.path.dirname(__file__), "../specs/standard/amqp0-9.stripped.xml")
+DEFAULT_SPEC = os.path.join(os.path.dirname(__file__), "../specs/standard/amqp0-9.stripped.xml")
 
 
 class SpecContainer(object):
-
     def __init__(self):
         self.items = []
         self.byname = {}
@@ -73,8 +74,8 @@ class SpecContainer(object):
     def __len__(self):
         return len(self.items)
 
-class Metadata(object):
 
+class Metadata(object):
     PRINT = []
 
     def __init__(self):
@@ -87,12 +88,13 @@ class Metadata(object):
     def __repr__(self):
         return str(self)
 
-class Spec(Metadata):
 
+class Spec(Metadata):
     PRINT = ["major", "minor", "file"]
 
     def __init__(self, major, minor, file):
         Metadata.__init__(self)
+
         self.major = major
         self.minor = minor
         self.file = file
@@ -128,8 +130,8 @@ class Spec(Metadata):
                 methods[meth] = m.define_method(meth)
         return type(name, (), methods)
 
-class Constant(Metadata):
 
+class Constant(Metadata):
     PRINT = ["name", "id"]
 
     def __init__(self, spec, name, id, klass, docs):
@@ -140,8 +142,8 @@ class Constant(Metadata):
         self.klass = klass
         self.docs = docs
 
-class Class(Metadata):
 
+class Class(Metadata):
     PRINT = ["name", "id"]
 
     def __init__(self, spec, name, id, handler, docs):
@@ -161,8 +163,8 @@ class Class(Metadata):
             methods[meth] = m.define_method(meth)
         return type(name, (), methods)
 
-class Method(Metadata):
 
+class Method(Metadata):
     PRINT = ["name", "id"]
 
     def __init__(self, klass, name, id, content, responses, synchronous,
@@ -224,8 +226,8 @@ class Method(Metadata):
         exec(code, g, l)
         return l[name]
 
-class Field(Metadata):
 
+class Field(Metadata):
     PRINT = ["name", "id", "type"]
 
     def __init__(self, name, id, type, docs):
@@ -235,26 +237,31 @@ class Field(Metadata):
         self.type = type
         self.docs = docs
 
+
 def get_docs(nd):
     return [n.text for n in nd["doc"]]
+
 
 def load_fields(nd, l, domains):
     for f_nd in nd["field"]:
         try:
-            type = f_nd["@domain"]
+            field_type = f_nd["@domain"]
         except KeyError:
-            type = f_nd["@type"]
-        while type in domains and domains[type] != type:
-            type = domains[type]
-        l.add(Field(f_nd["@name"], f_nd.index(), type, get_docs(f_nd)))
+            field_type = f_nd["@type"]
+        while field_type in domains and domains[field_type] != field_type:
+            field_type = domains[field_type]
+        l.add(Field(f_nd["@name"], f_nd.index(), field_type, get_docs(f_nd)))
+
 
 def load(specfile):
     doc = xmlutil.parse(specfile)
     return loadFromDoc(doc, specfilename=specfile)
 
+
 def loadString(specfilestr, specfilename=None):
     doc = xmlutil.parseString(specfilestr)
     return loadFromDoc(doc, specfilename=specfilename)
+
 
 def loadFromDoc(doc, specfilename=None):
     root = doc["amqp"][0]
@@ -299,6 +306,7 @@ REPLACE = {" ": "_", "-": "_"}
 KEYWORDS = {"global": "global_",
             "return": "return_"}
 
+
 def pythonize(name):
     name = str(name)
     for key, val in REPLACE.items():
@@ -309,6 +317,7 @@ def pythonize(name):
         pass
     return name
 
+
 def fill(text, indent, heading=None):
     sub = indent * " "
     if heading:
@@ -318,15 +327,18 @@ def fill(text, indent, heading=None):
     w = textwrap.TextWrapper(initial_indent=init, subsequent_indent=sub)
     return w.fill(" ".join(text.split()))
 
-class Rule(Metadata):
 
+class Rule(Metadata):
     PRINT = ["text", "implement", "tests"]
 
     def __init__(self, text, implement, tests, path):
+        Metadata.__init__(self)
+
         self.text = text
         self.implement = implement
         self.tests = tests
         self.path = path
+
 
 def find_rules(node, rules):
     if node.name == "rule":
@@ -341,10 +353,12 @@ def find_rules(node, rules):
     for child in node:
         find_rules(child, rules)
 
+
 def load_rules(specfile):
     rules = []
     find_rules(xmlutil.parse(specfile), rules)
     return rules
+
 
 def test_summary():
     template = '<html><head><title>AMQP Tests</title></head><body><table width="80%%" align="center">%s</table></body></html>'

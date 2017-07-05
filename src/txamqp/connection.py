@@ -16,13 +16,14 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+from io import BytesIO
+
+from twisted.python import log
+from six import with_metaclass
 
 from . import codec
-from io import BytesIO
-from twisted.python import log
 from .spec import pythonize
 
-from six import with_metaclass
 
 class Frame(object):
     METHOD = "frame_method"
@@ -43,27 +44,29 @@ class Frame(object):
     def __str__(self):
         return "[%d] %s" % (self.channel, self.payload)
 
+
 class PayloadMeta(type):
-    def __new__(cls, name, bases, dict):
+    def __new__(cls, name, bases, cls_members):
         for req in ("encode", "decode", "type"):
-            if req not in dict:
+            if req not in cls_members:
                 raise TypeError("%s must define %s" % (name, req))
-        dict["decode"] = staticmethod(dict["decode"])
-        t = type.__new__(cls, name, bases, dict)
-        if t.type != None:
+
+        t = type.__new__(cls, name, bases, cls_members)
+        if t.type is not None:
             Frame.DECODERS[t.type] = t
         return t
 
-class Payload(with_metaclass(PayloadMeta, object)):
 
+class Payload(with_metaclass(PayloadMeta, object)):
     type = None
 
     def encode(self, enc): raise NotImplementedError
 
+    @staticmethod
     def decode(spec, dec): raise NotImplementedError
 
-class Method(Payload):
 
+class Method(Payload):
     type = Frame.METHOD
 
     def __init__(self, method, *args):
@@ -86,6 +89,7 @@ class Method(Payload):
         c.flush()
         enc.encode_longbytes(buf.getvalue())
 
+    @staticmethod
     def decode(spec, dec):
         enc = dec.decode_longbytes()
         c = codec.Codec(BytesIO(enc))
@@ -97,8 +101,8 @@ class Method(Payload):
     def __str__(self):
         return "%s %s" % (self.method, ", ".join([str(a) for a in self.args]))
 
-class Header(Payload):
 
+class Header(Payload):
     type = Frame.HEADER
 
     def __init__(self, klass, weight, size, **properties):
@@ -129,7 +133,7 @@ class Header(Payload):
         for i in range(nprops):
             f = self.klass.fields.items[i]
             flags <<= 1
-            if self.properties.get(f.name) != None:
+            if self.properties.get(f.name) is not None:
                 flags |= 1
             # the last bit indicates more flags
             if i > 0 and (i % 15) == 0:
@@ -144,16 +148,16 @@ class Header(Payload):
         # properties
         for f in self.klass.fields:
             v = self.properties.get(f.name)
-            if v != None:
+            if v is not None:
                 c.encode(f.type, v)
-        unknown_props = set(self.properties.keys()) - \
-                        set([f.name for f in self.klass.fields])
+        unknown_props = set(self.properties.keys()) - set([f.name for f in self.klass.fields])
         if unknown_props:
             log.msg("Unknown message properties: %s" % ", ".join(unknown_props))
 
         c.flush()
         enc.encode_longbytes(buf.getvalue())
 
+    @staticmethod
     def decode(spec, dec):
         c = codec.Codec(BytesIO(dec.decode_longbytes()))
         klass = spec.classes.byid[c.decode_short()]
@@ -183,11 +187,10 @@ class Header(Payload):
         return Header(klass, weight, size, **properties)
 
     def __str__(self):
-        return "%s %s %s %s" % (self.klass, self.weight, self.size,
-                            self.properties)
+        return "%s %s %s %s" % (self.klass, self.weight, self.size, self.properties)
+
 
 class Body(Payload):
-
     type = Frame.BODY
 
     def __init__(self, content):
@@ -196,20 +199,24 @@ class Body(Payload):
     def encode(self, enc):
         enc.encode_longstr(self.content)
 
+    @staticmethod
     def decode(spec, dec):
         return Body(dec.decode_longstr())
 
     def __str__(self):
         return "Body(%r)" % self.content
 
+
 class Heartbeat(Payload):
     type = Frame.HEARTBEAT
+
     def __str__(self):
         return "Heartbeat()"
 
     def encode(self, enc):
         enc.encode_long(0)
 
+    @staticmethod
     def decode(spec, dec):
         dec.decode_long()
         return Heartbeat()

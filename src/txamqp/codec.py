@@ -27,8 +27,10 @@ fields.
 from io import BytesIO
 from struct import pack, calcsize, unpack
 
+
 class EOF(Exception):
     pass
+
 
 class Codec(object):
 
@@ -57,14 +59,16 @@ class Codec(object):
 
     def flushbits(self):
         if len(self.outgoing_bits) > 0:
-            bytes = []
+            bytes_list = []
             index = 0
             for b in self.outgoing_bits:
-                if index == 0: bytes.append(0)
-                if b: bytes[-1] |= 1 << index
+                if index == 0:
+                    bytes_list.append(0)
+                if b:
+                    bytes_list[-1] |= 1 << index
                 index = (index + 1) % 8
             del self.outgoing_bits[:]
-            for byte in bytes:
+            for byte in bytes_list:
                 self.encode_octet(byte)
 
     def pack(self, fmt, *args):
@@ -79,11 +83,11 @@ class Codec(object):
         else:
             return values
 
-    def encode(self, type, value):
-        getattr(self, "encode_" + type)(value)
+    def encode(self, field_type, field_value):
+        getattr(self, "encode_" + field_type)(field_value)
 
-    def decode(self, type):
-        return getattr(self, "decode_" + type)()
+    def decode(self, field_type):
+        return getattr(self, "decode_" + field_type)()
 
     # bit
     def encode_bit(self, o):
@@ -95,8 +99,8 @@ class Codec(object):
     def decode_bit(self):
         if len(self.incoming_bits) == 0:
             bits = self.decode_octet()
-            for i in range(8):
-                self.incoming_bits.append(bits >> i & 1 != 0)
+            for shift in range(8):
+                self.incoming_bits.append(bits >> shift & 1 != 0)
         return self.incoming_bits.pop(0)
 
     # octet
@@ -200,21 +204,22 @@ class Codec(object):
         result = {}
         while self.nread - start < size:
             key = self.decode_shortstr()
-            type = self.read(1)
-            if type == b"S":
+            item_type = self.read(1)
+            if item_type == b"S":
                 value = self.decode_longstr()
-            elif type == b"I":
+            elif item_type == b"I":
                 value = self.decode_long()
-            elif type == b"F":
+            elif item_type == b"F":
                 value = self.decode_table()
-            elif type == b"t":
+            elif item_type == b"t":
                 value = (self.decode_octet() != 0)
             else:
-                raise ValueError(repr(type))
+                raise ValueError(repr(item_type))
             result[key] = value
         return result
 
-def test(type, value):
+
+def test(field_type, value):
     if isinstance(value, (list, tuple)):
         values = value
     else:
@@ -222,32 +227,32 @@ def test(type, value):
     stream = BytesIO()
     codec = Codec(stream)
     for v in values:
-        codec.encode(type, v)
+        codec.encode(field_type, v)
     codec.flush()
     enc = stream.getvalue()
     stream.reset()
     dup = []
-    for i in range(len(values)):
-        dup.append(codec.decode(type))
+    for _ in range(len(values)):
+        dup.append(codec.decode(field_type))
     if values != dup:
         raise AssertionError("%r --> %r --> %r" % (values, enc, dup))
 
 if __name__ == "__main__":
-    def dotest(type, value):
-        args = (type, value)
+    def dotest(ftype, fvalue):
+        args = (ftype, fvalue)
         test(*args)
 
-    for value in ("1", "0", "110", "011", "11001", "10101", "10011"):
+    for bit_value in ("1", "0", "110", "011", "11001", "10101", "10011"):
         for i in range(10):
-            dotest("bit", map(lambda x: x == "1", value*i))
+            dotest("bit", map(lambda x: x == "1", bit_value*i))
 
-    for value in ({}, {"asdf": "fdsa", "fdsa": 1, "three": 3}, {"one": 1}):
-        dotest("table", value)
+    for str_value in ({}, {"asdf": "fdsa", "fdsa": 1, "three": 3}, {"one": 1}):
+        dotest("table", str_value)
 
-    for type in ("octet", "short", "long", "longlong"):
-        for value in range(0, 256):
-            dotest(type, value)
+    for ftype in ("octet", "short", "long", "longlong"):
+        for byte_value in range(0, 256):
+            dotest(ftype, byte_value)
 
-    for type in ("shortstr", "longstr"):
-        for value in ("", "a", "asdf"):
-            dotest(type, value)
+    for ftype in ("shortstr", "longstr"):
+        for str_value in ("", "a", "asdf"):
+            dotest(ftype, str_value)

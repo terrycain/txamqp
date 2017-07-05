@@ -21,11 +21,13 @@
 A simple python representation for AMQP content.
 """
 
+
 def default(val, defval):
-    if val == None:
+    if val is None:
         return defval
     else:
         return val
+
 
 class Content(object):
 

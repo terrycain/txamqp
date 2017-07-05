@@ -47,8 +47,8 @@ class TwistedEvent(object):
     """
 
     def __init__(self):
-        self._waiters = [] # [Deferred]
-        self._result = None # or ('callback'|'errback', result)
+        self._waiters = []  # [Deferred]
+        self._result = None  # or ('callback'|'errback', result)
 
     def fire(self):
         """

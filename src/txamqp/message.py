@@ -16,14 +16,11 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-try:
-    set
-except NameError:
-    from sets import Set as set
+
 
 class Message(object):
 
-    COMMON_FIELDS = set(("content", "method", "fields"))
+    COMMON_FIELDS = {"content", "method", "fields"}
 
     def __init__(self, method, fields, content=None):
         self.method = method
@@ -37,7 +34,8 @@ class Message(object):
         return len(self.fields)
 
     def _idx(self, idx):
-        if idx < 0: idx += len(self)
+        if idx < 0:
+            idx += len(self)
         if idx < 0 or idx > len(self):
             raise IndexError(idx)
         return idx

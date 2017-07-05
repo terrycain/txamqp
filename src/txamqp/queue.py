@@ -1,14 +1,16 @@
 # coding: utf-8
 from twisted.internet.defer import DeferredQueue
 
+
 class Empty(Exception):
     pass
+
 
 class Closed(Exception):
     pass
 
-class TimeoutDeferredQueue(DeferredQueue):
 
+class TimeoutDeferredQueue(DeferredQueue):
     END = object()
 
     def __init__(self, clock=None):
