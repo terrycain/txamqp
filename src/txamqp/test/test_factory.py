@@ -25,7 +25,6 @@ from txamqp.factory import AMQFactory, DEFAULT_SPEC
 
 
 class AMQFactoryTest(TestCase):
-
     def test_build_protocol(self):
         """Test building AMQClient instances with default parameters."""
         address = IPv4Address("TCP", "127.0.0.1", 5672)
